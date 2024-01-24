@@ -34,9 +34,14 @@ def get_inputs():
     
 # this is for crafting of packets
 def craft_packets(ip):
+
+    # ICMP packet crafting
     request_type = scapy.ICMP()  
     ip_destination = scapy.IP(dst=ip)
     packet = ip_destination / request_type
+
+    # TCP packet crafting
+
     return packet
 
 # this is for getting the response from each ip
@@ -66,7 +71,6 @@ def main():
     ip_list, mode = get_inputs() # get and error check the user input
     live_ips = get_response(ip_list) # get live ips
     report(live_ips)
-
 
 main()
 
