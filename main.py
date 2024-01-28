@@ -5,6 +5,8 @@ import logging
 def suppress_errors():
     logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
+def banner():
+    print("===============================\nNETWORK SCANNER\n===============================")
 
 def get_inputs():
     ip_list = []
@@ -24,7 +26,7 @@ def get_inputs():
     # check if option is in range
     validOption = False
     while validOption == False:
-        mode = input("Please select the mode: [1]-ICMP [2]-TCP: ")
+        mode = input("Please select the mode number:\n1 - ICMP\n2 - TCP\n: ")
         if mode in ['1','2']:
             if mode == '2':
                 try:
@@ -83,13 +85,14 @@ def get_response(ip_list,mode,port_num=None):
 
 
 def report(live_ips):
+    print("***Live IPs are:")
     for live_ip in live_ips:
-        print(f"live IPs are: {live_ip}") # print live ips
+        print(f"\u001b[32m{live_ip}\033[0m\n") # print live ips
 
 # main function
 def main():
     suppress_errors() # comment this to see errors during scan
-    
+    banner()
     ip_list, mode, port_num = get_inputs() # get and error check the user input
     live_ips= get_response(ip_list,mode,port_num) # get live ips
     report(live_ips) 
