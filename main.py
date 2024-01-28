@@ -11,12 +11,13 @@ def banner():
 def get_inputs():
     ip_list = []
     port_num = None
+    port_range = []
     # check if input is valid IPv4
     validInput = False
     while validInput == False:
-        cidr = input("Please enter the network address: ")          
+        cidr = input("Please enter the network address: ").strip()          
         try:
-            network = ipaddress.IPv4Network(cidr, strict=False) 
+            network = ipaddress.IPv4Network(cidr, strict=False)
             for ip in network.hosts():
                 ip_list.append(str(ip))
             validInput = True
@@ -26,20 +27,29 @@ def get_inputs():
     # check if option is in range
     validOption = False
     while validOption == False:
-        mode = input("Please select the mode number:\n1 - ICMP\n2 - TCP\n: ")
-        if mode in ['1','2']:
+        mode = input("Modes:\n1 - ICMP\n2 - TCP\n3 - Port Scan\nPlease select the mode: ")
+        if mode in ['1','2','3']:
             if mode == '2':
                 try:
                     port_num = int(input("Please enter the destination port number: "))
                     validOption = True
                 except ValueError:
                     print("\033[0;31m*** Incorrect Input: Not a valid port number...\033[0m")
+            elif mode == '3':
+                try:
+                    port_range_lower = int(input("Please enter the lowest port number: "))
+                    port_range_upper = int(input("Please enter the highest port number: "))
+                    port_range = list(range(port_range_lower, port_range_upper + 1))
+                    validOption = True
+                except ValueError:
+                    print("\033[0;31m*** Incorrect Input: Not a valid port number...\033[0m")
+                validOption = True
             else:
                 validOption = True
         else:
             print("\033[0;31m*** Incorrect Input: Invalid mode...\033[0m")
 
-    return ip_list, mode, port_num
+    return ip_list, mode, port_num, port_range
     
 # this is for crafting of ICMP packets
 def craft_icmp_packets(ip):
@@ -55,47 +65,61 @@ def craft_tcp_packets(ip,port_num):
     packet = ip_destination / request_type # create the packet
     return packet
 
+
 # this is for getting the response from each ip
-def get_response(ip_list,mode,port_num=None):
+def get_response(ip_list,mode,port_num=None, port_range=None):
     live_ips = []
-    
+    live_port = []
     # loop thru each ip in the ip list
     for ip in ip_list:
         
-        if mode == '1':
-            print("mode 1 selected")
+        if mode == '1': # host discovery using ICMP packet
             packet = craft_icmp_packets(ip) # crafted packet
-            response = scapy.sr1(packet, timeout=1, verbose=True) # create the response object
+            response = scapy.sr1(packet, timeout=1, verbose=False) # create the response object
             if response and response.haslayer(scapy.ICMP) and response[scapy.ICMP].type == 0:
-                print(f"\u001b[32m{ip} is live\033[0m\n")
+                print(f"\u001b[32m{ip} is live\033[0m")
                 live_ips.append(ip)
             else:
-                print(f"\033[0;31m{ip} is unreachable\033[0m\n")
+                print(f"\033[0;31m{ip} is unreachable\033[0m")
 
-        elif mode == '2':
+        elif mode == '2': # host discovery using TCP packet
             packet = craft_tcp_packets(ip,port_num) # crafted packet
-            response = scapy.sr1(packet, timeout=1, verbose=True) # create the response object
+            response = scapy.sr1(packet, timeout=1, verbose=False) # create the response object
             if response and response.haslayer(scapy.TCP) and response[scapy.TCP].flags == 0x12:
-                print(f"\u001b[32m{ip} is live\033[0m\n")
+                print(f"\u001b[32m{ip}:{port_num} is live\033[0m")
                 live_ips.append(ip)
+                live_port.append(port_num)
             else:
-                print(f"\033[0;31m{ip} is unreachable\033[0m\n")
+                print(f"\033[0;31m{ip}:{port_num} is unreachable\033[0m")
 
-    return live_ips
+        elif mode == '3': # this is for port scan per IP
+            for port in port_range:
+                packet = craft_tcp_packets(ip,port) 
+                response = scapy.sr1(packet, timeout=1, verbose=False) # create the response object
+                if response and response.haslayer(scapy.TCP) and response[scapy.TCP].flags == 0x12:
+                    print(f"\u001b[32m{ip}:{port} is open\033[0m")
+                    live_ips.append(ip)
+                    live_port.append(port)
+                else:
+                    print(f"\033[0;31m{ip}:{port} is closed\033[0m")
+            print(live_ips)
+
+    return live_ips, live_port
 
 
-def report(live_ips):
-    print("***Live IPs are:")
+def report(live_ips,live_port=None):
+    print("***Live sockets are:")
     for live_ip in live_ips:
-        print(f"\u001b[32m{live_ip}\033[0m\n") # print live ips
+        for port in live_port:
+            print(f"\u001b[32m{live_ip}:{port}\033[0m\n") # print live sockets
 
 # main function
 def main():
     suppress_errors() # comment this to see errors during scan
     banner()
-    ip_list, mode, port_num = get_inputs() # get and error check the user input
-    live_ips= get_response(ip_list,mode,port_num) # get live ips
-    report(live_ips) 
+    ip_list, mode, port_num, port_range = get_inputs() # get and error check the user input
+    live_ips, live_port = get_response(ip_list,mode,port_num, port_range) # get live ips
+    report(live_ips,live_port) 
 
 main()
 
