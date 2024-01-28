@@ -60,7 +60,7 @@ def get_response(ip_list,mode,port_num=None):
     # loop thru each ip in the ip list
     for ip in ip_list:
         
-        if mode == 1:
+        if mode == '1':
             print("mode 1 selected")
             packet = craft_icmp_packets(ip) # crafted packet
             response = scapy.sr1(packet, timeout=1, verbose=True) # create the response object
@@ -70,7 +70,7 @@ def get_response(ip_list,mode,port_num=None):
             else:
                 print(f"\033[0;31m{ip} is unreachable\033[0m\n")
 
-        elif mode == 2:
+        elif mode == '2':
             packet = craft_tcp_packets(ip,port_num) # crafted packet
             response = scapy.sr1(packet, timeout=1, verbose=True) # create the response object
             if response and response.haslayer(scapy.TCP) and response[scapy.TCP].flags == 0x12:
@@ -91,8 +91,8 @@ def main():
     suppress_errors() # comment this to see errors during scan
     
     ip_list, mode, port_num = get_inputs() # get and error check the user input
-    get_response(ip_list,mode,port_num) # get live ips
-    # report(live_ips)
+    live_ips= get_response(ip_list,mode,port_num) # get live ips
+    report(live_ips) 
 
 main()
 
