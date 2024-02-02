@@ -67,44 +67,49 @@ def craft_tcp_packets(ip,port_num):
 
 
 # this is for getting the response from each ip
-def get_response(ip_list,mode,port_num=None, port_range=None):
+def get_response(ip_list, mode, port_num=None, port_range=None):
     live_ips = []
     live_port = []
-    # loop thru each ip in the ip list
+
     for ip in ip_list:
-        
-        if mode == '1': # host discovery using ICMP packet
-            packet = craft_icmp_packets(ip) # crafted packet
-            response = scapy.sr1(packet, timeout=1, verbose=False) # create the response object
-            if response and response.haslayer(scapy.ICMP) and response[scapy.ICMP].type == 0:
-                print(f"\u001b[32m{ip} is live\033[0m")
-                live_ips.append(ip)
-            else:
-                print(f"\033[0;31m{ip} is unreachable\033[0m")
+        packet = None
+        response = None
 
-        elif mode == '2': # host discovery using TCP packet
-            packet = craft_tcp_packets(ip,port_num) # crafted packet
-            response = scapy.sr1(packet, timeout=1, verbose=False) # create the response object
-            if response and response.haslayer(scapy.TCP) and response[scapy.TCP].flags == 0x12:
-                print(f"\u001b[32m{ip}:{port_num} is live\033[0m")
-                live_ips.append(ip)
-                live_port.append(port_num)
-            else:
-                print(f"\033[0;31m{ip}:{port_num} is unreachable\033[0m")
+        if mode == '1':  # host discovery using ICMP packet
+            packet = craft_icmp_packets(ip)
 
-        elif mode == '3': # this is for port scan per IP
+        elif mode == '2':  # host discovery using TCP packet
+            packet = craft_tcp_packets(ip, port_num)
+
+        elif mode == '3':  # port scan per IP
             for port in port_range:
-                packet = craft_tcp_packets(ip,port) 
-                response = scapy.sr1(packet, timeout=1, verbose=False) # create the response object
+                packet = craft_tcp_packets(ip, port)
+                response = scapy.sr1(packet, timeout=1, verbose=True)
                 if response and response.haslayer(scapy.TCP) and response[scapy.TCP].flags == 0x12:
                     print(f"\u001b[32m{ip}:{port} is open\033[0m")
                     live_ips.append(ip)
                     live_port.append(port)
                 else:
                     print(f"\033[0;31m{ip}:{port} is closed\033[0m")
-            print(live_ips)
+            continue
+
+        response = scapy.sr1(packet, timeout=1, verbose=True)
+
+        if response:
+            if mode == '1' and response.haslayer(scapy.ICMP) and response[scapy.ICMP].type == 0:
+                print(f"\u001b[32m{ip} is live\033[0m")
+                live_ips.append(ip)
+
+            elif mode == '2' and response.haslayer(scapy.TCP) and response[scapy.TCP].flags == 0x12:
+                print(f"\u001b[32m{ip}:{port_num} is live\033[0m")
+                live_ips.append(ip)
+                live_port.append(port_num)
+
+        else:
+            print(f"\033[0;31m{ip} is unreachable\033[0m")
 
     return live_ips, live_port
+ 
 
 
 def report(live_ips,live_port=None):
