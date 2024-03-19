@@ -9,7 +9,7 @@ import logging # for suppression of errors during scan
 # My answer:
 #   ICMP is used for diagnostic purposes, such as checking if a host is reachable (ping) and gathering network condition information.
 #   TCP is used to establish and maintain connections between devices and is employed in scanning to check for open ports on remote systems.
-#   These protocols are chosen for their simplicity, efficiency, and widespread support across different network devices and operating systems, making them reliable choices for network scanning tasks.
+#   These protocols are chosen for their simplicity, efficiency, and widespread support across different network devices and operating systems, making them reliable choices for network scanning tasks. 
 
 # this function suppreses any errors during the scan
 def suppress_errors():
@@ -38,7 +38,7 @@ def get_inputs():
     # check if option is in range
     validOption = False
     while validOption == False:
-        mode = input("Please select the mode number:\n1 - ICMP\n2 - TCP\n: ")
+        mode = input("Please select the mode number [1]ICMP or [2]TCP: ")
         if mode in ['1','2']:
             if mode == '2':
                 try:
@@ -88,10 +88,10 @@ def get_response(ip_list,mode,port_num=None):
             packet = craft_tcp_packets(ip,port_num) # crafted packet
             response = scapy.sr1(packet, timeout=1, verbose=True) # create the response object
             if response and response.haslayer(scapy.TCP) and response[scapy.TCP].flags == 0x12: # checks if the response has TCP layer and if the  flag is 0x12.
-                print(f"\u001b[32m{ip} is live\033[0m\n")
+                print(f"\u001b[32m{ip}:{port_num} is live\033[0m\n")
                 live_ips.append(ip) # if live, append it to the list of live ips
             else:
-                print(f"\033[0;31m{ip} is unreachable\033[0m\n")
+                print(f"\033[0;31m{ip}:{port_num} is unreachable\033[0m\n")
 
     return live_ips
 
