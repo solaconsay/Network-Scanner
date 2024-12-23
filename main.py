@@ -124,8 +124,9 @@ def get_response(ip_list, mode, port_num=None, port_range=None):
             ):
                 print(f"\u001b[32m{ip} is live\033[0m")
                 live_ips.append(ip)
-            else:
-                print(f"\033[0;31m{ip} is unreachable\033[0m")
+            # uncomment this if you want to see uncreachable hosts
+            # else:
+            #     print(f"\033[0;31m{ip} is unreachable\033[0m")
 
         elif mode == "2":  # host discovery using TCP packet
             packet = craft_tcp_packets(ip, port_num)  # crafted packet
@@ -140,8 +141,9 @@ def get_response(ip_list, mode, port_num=None, port_range=None):
                 print(f"\u001b[32m{ip}:{port_num} is live\033[0m")
                 live_ips.append(ip)
                 live_port.append(port_num)
-            else:
-                print(f"\033[0;31m{ip}:{port_num} is unreachable\033[0m")
+            # uncomment this if you want to see uncreachable hosts
+            # else:
+            #     print(f"\033[0;31m{ip}:{port_num} is unreachable\033[0m")
 
         elif mode == "3":  # this is for port scan per IP
             for port in port_range:
