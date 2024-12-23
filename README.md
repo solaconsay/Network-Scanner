@@ -15,7 +15,7 @@ A Python-based network scanner that enables IP and port discovery on a given net
 - **Scapy**: Install the Scapy library by running:
   ```bash
   pip install scapy
-
+  ```
 
 Usage
 1. Clone or download the script.
@@ -41,7 +41,7 @@ Error Suppression: Suppresses Scapy errors for a cleaner output.
 
 Example
 For a simple ICMP scan on a /24 subnet:
-
+  ```powershell
   Please enter the network address: 192.168.1.0/24
   Modes:
     1 - ICMP
@@ -50,8 +50,7 @@ For a simple ICMP scan on a /24 subnet:
   Please select the mode: 1
   192.168.1.1 is live
   192.168.1.2 is unreachable
-  ...
-
+ ```
 Note:
 Run with administrator/root privileges for accurate results.
 Scanning a network without permission is prohibited and can be illegal. Use responsibly within your own network or with proper authorization.
